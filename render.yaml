@@ -1,0 +1,5 @@
+services:
+  - type: web
+    name: schl-essay-api
+    buildCommand: pip install poetry && poetry install
+    startCommand: poetry run python your_app_file.py 

@@ -1,0 +1,50 @@
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
+from prompt import system_prompt
+
+# Load environment variables
+load_dotenv()
+
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+print("\nWelcome to the Essay Generator!")
+print("=" * 50)
+
+# Get user inputs
+topic = input("Topic: ")
+word_count = input("Word Count: ")
+reference_style = input("Reference Style: ")
+essay_type = input("Essay Type: ")
+writing_style = input("Writing Style: ")
+tone = input("Tone: ")
+
+try:
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"""Please write an essay with the following specifications:
+                Topic: {topic}
+                Word Count: {word_count}
+                Reference Style: {reference_style}
+                Essay Type: {essay_type}
+                Writing Style: {writing_style}
+                Tone: {tone}
+            """}
+        ],
+        max_tokens=6638,
+        top_p=1.0,
+        frequency_penalty=0.16,
+        presence_penalty=0.86
+    )
+    
+    print("\nYour Essay:")
+    print("=" * 50)
+    print(response.choices[0].message.content)
+    print("=" * 50)
+    
+except Exception as e:
+    print(f"Error: {str(e)}")
+

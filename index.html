@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Essay Generator</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(140deg, #000000, #1a0b2e);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAElBMVEUAAAAAAAAAAAAAAAAAAAAAAADgKxmiAAAABnRSTlMDY2ExQ0JRiuUEAAAAQklEQVQ4y2NgQAX8/PyD4f///4MBg4GBgQEPYGBgYOAHYkZGRkYgZmJiYgJiZmZmZiBmYWFhAWJWVlZWIGZjY2MDALmtBYkXqhTKAAAAAElFTkSuQmCC');
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            margin-top: 20px;
+            transform: translateY(0);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-effect:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        h1 {
+            font-weight: 400;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(to right, #fff, #b19cd9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            animation: fadeUp 0.6s forwards;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: fadeUp 0.6s forwards;
+        }
+
+        .input-group:nth-child(2) { animation-delay: 0.1s; }
+        .input-group:nth-child(3) { animation-delay: 0.2s; }
+        .input-group:nth-child(4) { animation-delay: 0.3s; }
+        .input-group:nth-child(5) { animation-delay: 0.4s; }
+        .input-group:nth-child(6) { animation-delay: 0.5s; }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: rgba(177, 156, 217, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        .word-count {
+            position: relative;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: rgba(177, 156, 217, 0.2);
+            height: 4px;
+            border-radius: 2px;
+            border: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #b19cd9;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(177, 156, 217, 0.4);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        #wordCountDisplay {
+            font-family: 'SF Mono', monospace;
+            color: rgba(255, 255, 255, 0.8);
+            min-width: 100px;
+            text-align: right;
+        }
+
+        #generateBtn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #b19cd9, #6b4fbb);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 20px;
+            opacity: 0;
+            animation: fadeUp 0.6s 0.6s forwards;
+        }
+
+        #generateBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(177, 156, 217, 0.3);
+        }
+
+        #generateBtn:active {
+            transform: translateY(1px);
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            resize: vertical;
+            line-height: 1.6;
+            margin-top: 20px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: rgba(177, 156, 217, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .loading-bar {
+            height: 2px;
+            width: 100%;
+            background: linear-gradient(90deg, #b19cd9, #6b4fbb, #b19cd9);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite linear;
+            border-radius: 1px;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-bar.active {
+            opacity: 1;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status {
+            margin-top: 10px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+        }
+
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(177, 156, 217, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(177, 156, 217, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+    <div class="container">
+        <h1>Essay Generator</h1>
+        <div class="glass-effect">
+            <div class="input-group">
+                <label>Essay Topic</label>
+                <input type="text" id="topicInput" placeholder="Enter your essay topic...">
+            </div>
+
+            <div class="input-group">
+                <label>Word Count</label>
+                <div class="word-count">
+                    <input type="range" id="wordCount" min="100" max="2000" step="1" value="500">
+                    <span id="wordCountDisplay">500 words</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Reference Style</label>
+                <select id="referenceStyle">
+                    <option value="APA">APA</option>
+                    <option value="MLA">MLA</option>
+                    <option value="Chicago">Chicago</option>
+                    <option value="Harvard">Harvard</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Essay Type</label>
+                <select id="essayType">
+                    <option value="Academic">Academic</option>
+                    <option value="Argumentative">Argumentative</option>
+                    <option value="Descriptive">Descriptive</option>
+                    <option value="Narrative">Narrative</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Writing Style</label>
+                <select id="writingStyle">
+                    <option value="Formal">Formal</option>
+                    <option value="Casual">Casual</option>
+                    <option value="Creative">Creative</option>
+                    <option value="Technical">Technical</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Tone</label>
+                <select id="tone">
+                    <option value="Professional">Professional</option>
+                    <option value="Friendly">Friendly</option>
+                    <option value="Authoritative">Authoritative</option>
+                    <option value="Persuasive">Persuasive</option>
+                </select>
+            </div>
+
+            <button id="generateBtn">Generate Essay</button>
+            <div class="loading-bar" id="loadingBar"></div>
+            <div class="status" id="status"></div>
+            <textarea id="output" readonly placeholder="Your generated essay will appear here..."></textarea>
+        </div>
+    </div>
+
+    <script>
+        // Add smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Existing JavaScript for functionality
+        // Add loading animation
+        function showLoading() {
+            const loadingBar = document.querySelector('.loading-bar');
+            loadingBar.classList.add('active');
+        }
+
+        function hideLoading() {
+            const loadingBar = document.querySelector('.loading-bar');
+            loadingBar.classList.remove('active');
+        }
+
+        // Update your generateEssay function to use the new loading animation
+        async function generateEssay() {
+            const topicInput = document.getElementById('topicInput');
+            const generateBtn = document.getElementById('generateBtn');
+            const output = document.getElementById('output');
+            const status = document.getElementById('status');
+
+            if (!topicInput.value.trim()) {
+                output.value = 'Please enter a topic first';
+                return;
+            }
+
+            try {
+                showLoading();
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Generating...';
+                output.value = 'Generating your essay...';
+
+                const response = await fetch('http://127.0.0.1:5000/generate-essay', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        topic: topicInput.value,
+                        wordCount: parseInt(wordCountSlider.value),
+                        referenceStyle: getSelectedValue('referenceStyle'),
+                        essayType: getSelectedValue('essayType'),
+                        writingStyle: getSelectedValue('writingStyle'),
+                        tone: getSelectedValue('tone')
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    output.value = data.essay;
+                    status.textContent = '✨ Essay generated successfully! ✨';
+                } else {
+                    output.value = 'Error: ' + (data.error || 'Unknown error occurred');
+                    status.textContent = 'Failed to generate essay';
+                }
+            } catch (error) {
+                console.error('API Error:', error);
+                output.value = 'Error connecting to API. Make sure the server is running at http://127.0.0.1:5000';
+                status.textContent = 'Connection failed';
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Essay';
+                hideLoading();
+            }
+        }
+
+        // Smooth word count update
+        const wordCountSlider = document.getElementById('wordCount');
+        const wordCountDisplay = document.getElementById('wordCountDisplay');
+        
+        wordCountSlider.addEventListener('input', function() {
+            wordCountDisplay.textContent = this.value + ' words';
+        });
+
+        // Get selected value from button group
+        function getSelectedValue(groupId) {
+            return document.querySelector(`#${groupId} option:checked`).value;
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', generateEssay);
+    </script>
+</body>
+</html> 
