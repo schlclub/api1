@@ -3,9 +3,10 @@ services:
     name: schl-essay-api
     runtime: python
     buildCommand: |
+      ls -la  # This will show us the contents of the directory
       pip install poetry==1.7.1
       poetry config virtualenvs.create false
-      poetry install --no-interaction --no-ansi
+      poetry install
     startCommand: poetry run uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
